@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Terminal v3.0</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #00ff41;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .input-area {
+            display: flex;
+            background: #001100;
+            padding: 15px;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            z-index: 20;
+        }
+
+        .prompt { color: #00ff41; font-weight: bold; margin-right: 10px; }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 18px;
+            outline: none;
+            width: 100%;
+        }
+
+        .bot-text { margin: 5px 0; line-height: 1.4; }
+        .user-text { color: #00ff41; font-weight: bold; margin: 10px 0; }
+        .success { color: #00f2ff; }
+        .error { color: #ff3e3e; }
+
+        #name-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            display: none;
+            z-index: 1;
+            opacity: 0.3;
+            text-align: center;
+            width: 100%;
+            animation: color-change 3s infinite alternate, pulse 2s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes color-change {
+            0% { color: #00ff41; text-shadow: 0 0 20px #00ff41; }
+            100% { color: #a020f0; text-shadow: 0 0 20px #a020f0; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 2px;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body onclick="document.getElementById('userInput').focus()">
+    <div id="name-overlay"></div>
+    <div class="scanline"></div>
+    <div id="terminal"></div>
+    
+    <div class="input-area">
+        <span class="prompt" id="current-prompt">guest@shadow:~#</span>
+        <input type="text" id="userInput" autofocus autocomplete="off" placeholder="Type here...">
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('userInput');
+        const nameOverlay = document.getElementById('name-overlay');
+        const promptLabel = document.getElementById('current-prompt');
+
+        let step = 'NAME';
+        let userName = "";
+        let isBgOn = true;
+
+        const osList = ["Windows XP", "Windows 7", "Windows 8", "Windows 10", "Windows 11", "Windows 12", "Kali Linux"];
+
+        function typeText(text, className = "bot-text") {
+            const p = document.createElement('p');
+            p.className = className;
+            terminal.appendChild(p);
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                p.innerHTML += text.charAt(i);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(interval);
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+            }, 20);
+        }
+
+        function startSystem() {
+            step = 'NAME';
+            userName = "";
+            nameOverlay.style.display = "none";
+            promptLabel.innerHTML = "guest@shadow:~#";
+            typeText("--- SHADOW TERMINAL v3.0 INITIALIZED ---");
+            setTimeout(() => typeText("Enter your hacker name:"), 800);
+        }
+
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                const cmd = val.toLowerCase();
+                input.value = "";
+
+                if(val === "") return;
+
+                // ১. Clear All কমান্ড (c.a)
+                if (cmd === "c.a") {
+                    terminal.innerHTML = "";
+                    typeText("System: Console cleared.", "success");
+                    if(step === 'MENU') showMenu();
+                    return;
+                }
+
+                // ২. Logout কমান্ড (id.logout)
+                if (cmd === "id.logout") {
+                    terminal.innerHTML = "";
+                    startSystem();
+                    return;
+                }
+
+                typeText("> " + val, "user-text");
+
+                // ৩. Background অন/অফ কমান্ড
+                if (cmd === "bg.off") {
+                    isBgOn = false;
+                    nameOverlay.style.display = "none";
+                    typeText("System: Background animation turned OFF.", "success");
+                    return;
+                }
+                if (cmd === "bg.on") {
+                    isBgOn = true;
+                    if (userName !== "") nameOverlay.style.display = "block";
+                    typeText("System: Background animation turned ON.", "success");
+                    return;
+                }
+
+                handleInput(val);
+            }
+        });
+
+        function handleInput(val) {
+            if (step === 'NAME') {
+                userName = val;
+                step = 'PASS';
+                setTimeout(() => typeText("Enter password for " + userName + ":"), 500);
+            } 
+            else if (step === 'PASS') {
+                if ((userName === "hackr pro" && val === "69.69") || ["666", "9666", "9.666"].includes(val)) {
+                    typeText("Access Granted! Identity Verified.", "success");
+                    promptLabel.innerHTML = userName + "@shadow:~#";
+                    if(isBgOn) {
+                        nameOverlay.innerHTML = userName;
+                        nameOverlay.style.display = "block";
+                    }
+                    showMenu();
+                } else {
+                    typeText("Access Denied! Identity Mismatch.", "error");
+                    step = 'NAME';
+                    setTimeout(() => typeText("Enter your hacker name:"), 500);
+                }
+            } 
+            else if (step === 'MENU') {
+                if (val === '1') {
+                    typeText("Enter target IP:");
+                    step = 'HACK_PASS';
+                } else if (val === '2') {
+                    typeText("Enter IP for system scan:");
+                    step = 'HACK_INFO';
+                } else if (val === '3') {
+                    typeText("Write your custom hack request:");
+                    step = 'CUSTOM';
+                } else {
+                    typeText("Invalid Command! Try 1, 2, or 3.", "error");
+                }
+            }
+            else if (step === 'HACK_PASS') {
+                typeText("Cracking " + val + "...");
+                setTimeout(() => {
+                    typeText("Password Decrypted: " + Math.random().toString(36).slice(-8).toUpperCase(), "success");
+                    showMenu();
+                }, 2000);
+            }
+            else if (step === 'HACK_INFO') {
+                typeText("Scanning " + val + "...");
+                setTimeout(() => {
+                    const os = osList[Math.floor(Math.random() * osList.length)];
+                    typeText("OS: " + os + " | Status: Vulnerable | Battery: " + Math.floor(Math.random()*100) + "%");
+                    showMenu();
+                }, 2000);
+            }
+            else if (step === 'CUSTOM') {
+                typeText("Request sent to server...");
+                setTimeout(() => {
+                    typeText("Message: 'Details received. Contacting you soon.'", "success");
+                    showMenu();
+                }, 2000);
+            }
+        }
+
+        function showMenu() {
+            step = 'MENU';
+            setTimeout(() => {
+                typeText("\n--- COMMANDS ---");
+                typeText("1: Hack Password | 2: System Info | 3: Custom Request");
+                typeText("Global: 'c.a' (Clear), 'id.logout' (Logout), 'bg.off' / 'bg.on'");
+            }, 1000);
+        }
+
+        startSystem();
+    </script>
+</body>
+</html>
